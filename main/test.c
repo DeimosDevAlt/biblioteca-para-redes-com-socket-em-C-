@@ -2,24 +2,27 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 
-void server_process(void *arg) {
-    // Implement the server process logic here
+void* server_process(void *arg) {
     struct server_t* server = (struct server_t*)arg;
+    fflush(stdout);
+    printf("debug");
     while(server->is_running) {
-        // Server logic to handle incoming connections and data
         packet_handler(&server->raw_data);
     }
+    return NULL;
 }
 
 void run_test(char* ip, uint16_t port) {
 
     printf("Starting server on %s:%d\n", ip, port);
 
-    struct server_t* server = {0};
-    int error_code = new_server(ip, port, 0, server_process);
+    struct server_t* server = malloc(sizeof(struct server_t));
+    *server = (struct server_t){0}; // Initialize the server structure
+    int error_code = new_server(server, ip, port, 0, server_process);
 
-    if(error_code < 0) {
+    if((error_code != 1)) {
         printf("Failed to create server. Error code: %d\n", error_code);
         return;
     }
@@ -29,11 +32,16 @@ void run_test(char* ip, uint16_t port) {
 
     while(server->is_running) {
         // Server is running, you can add logic to handle server operations here
-        
+        char server_commands[32] = {0};
+        scanf("%s", server_commands);
+
+        if(strcmp(server_commands, "stop") == 0) {
+            server->is_running = 0;
+        }
 
     }
 
-    switch(error_code) {
+    switch(error_code) { 
         case SOCKET_ERROR:
             printf("Error creating server socket.\n");
             break;
@@ -51,6 +59,6 @@ void run_test(char* ip, uint16_t port) {
 }
 
 int main() {
-    run_test(LOCALHOST, 8080);
+    run_test(LOCALHOST, 8081);
     return 0;
 }

@@ -14,9 +14,9 @@
 #define AUTHORIZED 1
 #define NOT_AUTHORIZED 0
 #define TIMEOUT 2
-#define MAX_MESSAGE_LENGTH 512
+#define MAX_MESSAGE_LENGTH 256
 
-typedef pthread_t (*pproc) (void*);
+typedef void* (*pproc)(void*);
 
 struct base_build {
     char* bind_ip;
@@ -32,14 +32,15 @@ struct base_build {
 struct client_t {
     struct base_build m_raw_data;
     struct base_build raw_data;
-    pproc* process;
+    pproc process;
     long uptime;
     int m_ID;
 };
 
 struct server_t {
     struct base_build raw_data;
-    pproc* process;
+    pthread_t tprocess;
+    pproc process;
     int is_running;
     long uptime;
     struct client_t** connections;
@@ -56,11 +57,11 @@ int auth_client(struct server_t*, struct client_t*);
 
 int accept_client(struct server_t*, struct client_t*);
 
-void run_client(struct client_t, pproc*);
+void run_client(struct client_t, pproc);
 
-int new_server(char*, uint16_t, uint8_t, pproc*);
+int new_server(struct server_t*, char*, uint16_t, uint8_t, pproc);
 
-int new_client(char*, uint16_t, uint8_t, pproc*);
+int new_client(char*, uint16_t, uint8_t, pproc);
 
 struct client_t get_client_by_ID(struct server_t, int);
 
@@ -75,6 +76,8 @@ int disconnect_client_by_ID(struct server_t, int);
 int shutoff_server(struct server_t);
 
 void packet_handler(struct base_build*);
+
+void setup_packet(struct packet_t*, char*, uint8_t, int, int);
 
 void clean_packet(struct packet_t*);
 
